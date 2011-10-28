@@ -497,9 +497,25 @@ now.backgroundResponce = function(type, background){
 
 }
 
+
+
 ////////////
 ///TXT/////
 //////////
+
+function fillChat(user, text) {
+
+var newTxtDiv = document.createElement('div');
+	//text.remove(/<script\b[^>]*>(.*?)<\/script>/i)
+	newTxtDiv.innerHTML ="<b><a href='/profile/"+user+"'>"+user+"</a>:</b> " +text;
+	newTxtDiv.style.paddingBottom="1px";
+	//newTxtDiv.innerHTML = newDiv.innerHTML;			
+	document.getElementById('chatBox').appendChild(newTxtDiv);
+	lastPost=user;
+	lastTxtDiv=newTxtDiv;
+}
+
+
 var maxrows=6;
 
 function doResize() {
@@ -529,7 +545,7 @@ function enter(evt){
 
 		
 		inputBox.value="";
-		now.submitComment(pageName,textObject);
+		now.submitComment(pageName,textObject, userProfile);
 		evt.preventDefault();
 		//inputBox.blur();
 		//document.yourform.submit();
@@ -545,15 +561,7 @@ now.updateText = function(user, text){
 		lastTxtDiv.innerHTML+="<br>"+text;
 	}
 	else{
-		var newTxtDiv = document.createElement('div');
-		//text.remove(/<script\b[^>]*>(.*?)<\/script>/i)
-		newTxtDiv.innerHTML ="<b><a href='/profile/"+user+"'>"+user+"</a>:</b> " +text;
-		newTxtDiv.style.paddingBottom="1px";
-		//newTxtDiv.innerHTML = newDiv.innerHTML;			
-		document.getElementById('chatBox').appendChild(newTxtDiv);
-		lastPost=user;
-		lastTxtDiv=newTxtDiv;
-
+	fillChat(user,text);
 		
 	
 
@@ -588,6 +596,9 @@ function jsonToDom(pageDataIn){
 
 	document.getElementById('profileContainer').style.display='none';
 	//document.getElementById('profileContainer').innerHTML="";	
+	
+	document.getElementById('chatBox').innerHTML="";
+
 	
 	$("#userImage").remove();
 	$("#userName").remove();
@@ -662,29 +673,19 @@ function jsonToDom(pageDataIn){
 	if(pageData.text != undefined){
 		for(var i=0; i<pageData.text.length; i++){
 			
-		if(pageData.text.user==lastPost){
-			lastTxtDiv.innerHTML+="<br>"+pageData.text.text;
+		if(pageData.text[i].user==lastPost){
+			lastTxtDiv.innerHTML+="<br>"+pageData.text[i].text;
 		}
 			else{
 			
-		var newTxtDiv = document.createElement('div');
-		//text.remove(/<script\b[^>]*>(.*?)<\/script>/i)
-		newTxtDiv.innerHTML ="<b><a href='/profile/"+pageData.text.user+"'>"+pageData.text.user+"</a>:</b> " +pageData.text.text;
-		newTxtDiv.style.paddingBottom="1px";
-		//newTxtDiv.innerHTML = newDiv.innerHTML;			
-		document.getElementById('chatBox').appendChild(newTxtDiv);
-		lastPost=pageData.text.user;
-		lastTxtDiv=newTxtDiv;
-		
+			fillChat(pageData.text[i].user,pageData.text[i].text);
+	
 			}
 
 		}
 	}
 		
-	//document.getElementById('console1').value = pageData.text;
 
-	//var bgimage = new Image ();
-	//bgimage.src=
 
 	var div3d = document.getElementById("div3d");
 
@@ -755,7 +756,26 @@ loadProfileInfo = function(info){
 		containerDiv.appendChild(userImage);
 		containerDiv.style.display='block';
 		//document.body.appendChild(containerDiv);
+		
+		
+			var lastPost="";
+	var lastTxtDiv;	
+	if(profileInfo.text != undefined){
+
+	
+		for(var i=0; i<profileInfo.text.length; i++){
+			
+		if(profileInfo.text[i].user==lastPost){
+			lastTxtDiv.innerHTML+="<br>"+profileInfo.text[i].text;
+		}
+			else{			
+			fillChat(profileInfo.text[i].user, profileInfo.text[i].text);
+			}
+		}
 	}
+		
+	}
+	
 	
 	///fill out pages
 
@@ -796,12 +816,7 @@ loadProfileInfo = function(info){
 	}
 	document.getElementById('userPages').style.display='block';
 
-/*
-	if(pageName=="main")
-		var lastDiv = "users"
-	if(pageName=="profile")
-		var lastDiv = "contributedTo"
-*/
+
 	if(pageName=="main"){
 		for(var i =0;i<profileInfo.users.length;i++){
 		
@@ -817,6 +832,11 @@ loadProfileInfo = function(info){
 	
 	
 		document.getElementById('contributePages').style.display='block';
+		
+	document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+
+
+
 }
 
 	changeBackground();

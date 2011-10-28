@@ -137,6 +137,7 @@ var userSchema = new Schema({
 	, contributedTo : []
 	, favoritePages : []
 	, favoriteUsers : []
+	, text 		: [textSchema]
 	, likes: []
 	, userImage: {type:String, default:""}
 	, backgroundImage : String
@@ -144,7 +145,6 @@ var userSchema = new Schema({
 	, info : String
 });
 
-//var profilePageSchema = new Schema({
 
 
 var textSchema = new Schema({
@@ -965,15 +965,12 @@ everyone.now.deletePage = function(pageName,callback){
 //////TXT/////
 /////////////
 
-everyone.now.submitComment = function(pageName,textObject){
+everyone.now.submitComment = function(pageName,textObject, userProfile){
 
 
-		
+	var oldthis = this;	
 	//TODO: permissions
 	var groupName=pageName;
-	if(pageName=="profile")
-		groupName = "profile___"+userProfile;
-	pagesGroup[groupName].now.updateText(this.user.name,textObject.text);
 	
 	var txt= new textSchema(textObject);
 	txt.user = this.user.name;
@@ -981,14 +978,29 @@ everyone.now.submitComment = function(pageName,textObject){
 	console.log("This is text %", txt.text);
 		
 	var thereIsError=false;
+	if(pageName=="profile"){
+		groupName = "profile___"+userProfile;
+		userModel.update({"username":userProfile}, {$push: {"text" : txt}}, function (err) {
+				console.log("This is groupName %", groupName);
+		  if (err)
+		  	thereIsError=true;
 
+		else if(!thereIsError)
+			pagesGroup[groupName].now.updateText(oldthis.user.name,txt.text);
+					});
+
+	}
+	
+	else{ 
+		pagesGroup[groupName].now.updateText(this.user.name,textObject.text);
 		pageModel.update({"pageName":pageName}, {$push: {"text" : txt}}, function (err,result) {
 		  if (err)
 		  	thereIsError=true;
-		});
+		
 		if(!thereIsError)
 			pagesGroup[pageName].now.updateText(this.user.name,txt.text);
-	
+			});
+	}
 }
 
 	
